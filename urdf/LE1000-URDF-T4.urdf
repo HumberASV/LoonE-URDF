@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="LE1000-URDF-T4">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="0.0020604 0.014038 0.04597"
+        rpy="0 0 0" />
+      <mass
+        value="15.687" />
+      <inertia
+        ixx="0.472"
+        ixy="-5.4685E-05"
+        ixz="-2.1797E-05"
+        iyy="0.39383"
+        iyz="0.018476"
+        izz="0.7806" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <box
+          size="0.60 0.95 0.70" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <box
+          size="0.60 0.95 0.70" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="Joint1">
+    <inertial>
+      <origin
+        xyz="0.024664 -0.068179 6.8383E-08"
+        rpy="0 0 0" />
+      <mass
+        value="0.16562" />
+      <inertia
+        ixx="0.00061806"
+        ixy="6.8728E-06"
+        ixz="2.0765E-09"
+        iyy="5.1737E-05"
+        iyz="2.5949E-09"
+        izz="0.0006647" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://LE1000-URDF-T4/meshes/Joint1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://LE1000-URDF-T4/meshes/Joint1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="J1"
+    type="revolute">
+    <origin
+      xyz="0.20955 0.47374 -0.06586"
+      rpy="1.5708 0 1.5708" />
+    <parent
+      link="base_link" />
+    <child
+      link="Joint1" />
+    <axis
+      xyz="0 -1 0" />
+    <limit
+      lower="0"
+      upper="0"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="Joint2">
+    <inertial>
+      <origin
+        xyz="0.024664 -0.068179 6.8394E-08"
+        rpy="0 0 0" />
+      <mass
+        value="0.16562" />
+      <inertia
+        ixx="0.00061806"
+        ixy="6.8728E-06"
+        ixz="2.0764E-09"
+        iyy="5.1737E-05"
+        iyz="2.5951E-09"
+        izz="0.0006647" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://LE1000-URDF-T4/meshes/Joint2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://LE1000-URDF-T4/meshes/Joint2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="J2"
+    type="revolute">
+    <origin
+      xyz="-0.20955 0.47374 -0.06586"
+      rpy="1.5708 0 1.5708" />
+    <parent
+      link="base_link" />
+    <child
+      link="Joint2" />
+    <axis
+      xyz="0 -1 0" />
+    <limit
+      lower="0"
+      upper="0"
+      effort="0"
+      velocity="0" />
+  </joint>
+</robot>
