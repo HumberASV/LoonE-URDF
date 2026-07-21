@@ -22,11 +22,25 @@
     </inertial>
     <visual>
       <origin
-        xyz="0 0 0"
+        xyz="0 0 0.175"
         rpy="0 0 0" />
       <geometry>
         <box
-          size="0.60 0.95 0.70" />
+          size="0.60 0.95 0.35" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <visual>
+      <origin
+        xyz="0 0 -0.175"
+        rpy="0 0 0" />
+      <geometry>
+        <box
+          size="0.60 0.90 0.35" />
       </geometry>
       <material
         name="">
@@ -36,11 +50,20 @@
     </visual>
     <collision>
       <origin
-        xyz="0 0 0"
+        xyz="0 0 0.175"
         rpy="0 0 0" />
       <geometry>
         <box
-          size="0.60 0.95 0.70" />
+          size="0.60 0.95 0.35" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin
+        xyz="0 0 -0.175"
+        rpy="0 0 0" />
+      <geometry>
+        <box
+          size="0.60 0.90 0.35" />
       </geometry>
     </collision>
   </link>
