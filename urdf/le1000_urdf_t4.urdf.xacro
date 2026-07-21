@@ -89,7 +89,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://LE1000-URDF-T4/meshes/Joint1.STL" />
+          filename="package://le1000_urdf_t4/meshes/Joint1.STL" />
       </geometry>
       <material
         name="">
@@ -103,7 +103,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://LE1000-URDF-T4/meshes/Joint1.STL" />
+          filename="package://le1000_urdf_t4/meshes/Joint1.STL" />
       </geometry>
     </collision>
   </link>
@@ -147,7 +147,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://LE1000-URDF-T4/meshes/Joint2.STL" />
+          filename="package://le1000_urdf_t4/meshes/Joint2.STL" />
       </geometry>
       <material
         name="">
@@ -161,7 +161,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://LE1000-URDF-T4/meshes/Joint2.STL" />
+          filename="package://le1000_urdf_t4/meshes/Joint2.STL" />
       </geometry>
     </collision>
   </link>

@@ -3,60 +3,58 @@
 URDF/xacro robot description package for **LE1000-URDF-T4**, part of [Humber ASV](https://github.com/HumberASV)'s Loon E project.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![ROS](https://img.shields.io/badge/ROS-1%20%28catkin%29-22314E?logo=ros&logoColor=white)](http://wiki.ros.org/catkin)
+[![ROS](https://img.shields.io/badge/ROS-2%20%28ament__cmake%29-22314E?logo=ros&logoColor=white)](https://docs.ros.org/en/rolling/)
 [![Platform](https://img.shields.io/badge/platform-linux-lightgrey)](#prerequisites)
 [![Code of Conduct](https://img.shields.io/badge/Code%20of%20Conduct-CODE__OF__CONDUCT.md-blueviolet)](CODE_OF_CONDUCT.md)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 ## Overview
 
-This package holds the robot description for **LE1000-URDF-T4**, generated from a SolidWorks assembly via the [`sw_urdf_exporter`](http://wiki.ros.org/sw_urdf_exporter) plugin. It contains the xacro/URDF model, collision/visual meshes, joint configuration, and launch files for visualizing the robot in RViz and spawning it in Gazebo.
+This package holds the robot description for **LE1000-URDF-T4**, generated from a SolidWorks assembly via the [`sw_urdf_exporter`](http://wiki.ros.org/sw_urdf_exporter) plugin. It contains the xacro/URDF model, collision/visual meshes, joint configuration, and a launch file for visualizing the robot in RViz.
 
 ## Repository structure
 
 ```text
-├── config/          # Controller joint name mappings
-├── launch/          # RViz (display.launch) and Gazebo (gazebo.launch) launch files
+├── config/          # Controller joint name mappings and RViz config
+├── launch/          # RViz launch file (display.launch.py)
 ├── meshes/          # Visual/collision STL meshes for each link
 ├── urdf/            # Xacro robot description and exporter-generated CSV
-├── CMakeLists.txt   # catkin build rules
-└── package.xml      # catkin package manifest
+├── CMakeLists.txt   # ament_cmake build rules
+└── package.xml      # ament package manifest
 ```
 
 ## Prerequisites
 
-- ROS 1 (catkin workspace)
-- [`robot_state_publisher`](http://wiki.ros.org/robot_state_publisher)
-- [`joint_state_publisher_gui`](http://wiki.ros.org/joint_state_publisher_gui)
-- [`rviz`](http://wiki.ros.org/rviz)
-- [`gazebo_ros`](http://wiki.ros.org/gazebo_ros)
-- [`xacro`](http://wiki.ros.org/xacro)
+- ROS 2 (colcon workspace)
+- [`robot_state_publisher`](https://index.ros.org/p/robot_state_publisher/)
+- [`joint_state_publisher_gui`](https://index.ros.org/p/joint_state_publisher_gui/)
+- [`rviz2`](https://index.ros.org/p/rviz2/)
+- [`xacro`](https://index.ros.org/p/xacro/)
 
 ## Building
 
-Clone this package into the `src` folder of a catkin workspace and build:
+Clone this package into the `src` folder of a colcon workspace and build:
 
 ```sh
-cd ~/catkin_ws/src
+cd ~/ros2_ws/src
 git clone https://github.com/HumberASV/LoonE-URDF.git
-cd ~/catkin_ws
-catkin_make
-source devel/setup.bash
+cd ~/ros2_ws
+colcon build --packages-select le1000_urdf_t4
+source install/setup.bash
 ```
 
 ## Usage
 
-Generate the URDF from the xacro source and view it in RViz:
+Launch RViz with the robot model, `joint_state_publisher_gui`, and `robot_state_publisher`:
 
 ```sh
-rosrun xacro xacro urdf/LE1000-URDF-T4.urdf.xacro > urdf/LE1000-URDF-T4.urdf
-roslaunch LE1000-URDF-T4 display.launch
+ros2 launch le1000_urdf_t4 display.launch.py
 ```
 
-Spawn the robot in an empty Gazebo world:
+The xacro file is processed automatically by the launch file; there's no need to pre-generate a `.urdf` file. To view a different model or RViz config, override the launch arguments:
 
 ```sh
-roslaunch LE1000-URDF-T4 gazebo.launch
+ros2 launch le1000_urdf_t4 display.launch.py model:=/path/to/other.urdf.xacro rvizconfig:=/path/to/other.rviz
 ```
 
 ## Contributing
