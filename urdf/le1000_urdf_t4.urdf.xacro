@@ -313,16 +313,24 @@
     <xacro:zedx_body/>
   </link>
 
+  <!-- Boresight (local +X) must point along the hull's actual fore-aft axis, which
+       is Y here (bow at -Y, stern at +Y; see propeller_l/r_joint and
+       rudder_l/r_joint, both further out on +Y). A yaw of 0/180 only swings the
+       boresight between +X/-X (port/starboard), so both joints below carry an
+       extra +/-90 deg on top of the front/rear 180 deg split to actually aim
+       outward along Y instead of sideways. -->
   <joint name="cam_1_joint" type="fixed">
     <parent link="base_link"/>
     <child link="cam_1_link"/>
-    <origin xyz="0 ${cam_y} ${cam_z}" rpy="0 0 0"/>
+    <!-- Stern side (same side as props/rudder): boresight faces +Y (aft). -->
+    <origin xyz="0 ${cam_y} ${cam_z}" rpy="0 0 1.5708"/>
   </joint>
 
   <joint name="cam_2_joint" type="fixed">
     <parent link="base_link"/>
     <child link="cam_2_link"/>
-    <origin xyz="0 ${-cam_y} ${cam_z}" rpy="0 0 3.14159"/>
+    <!-- Bow side, confirmed physical front camera: boresight faces -Y (forward). -->
+    <origin xyz="0 ${-cam_y} ${cam_z}" rpy="0 0 -1.5708"/>
   </joint>
 
   <!-- ============================ ros2_control ============================ -->
