@@ -10,7 +10,7 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 def generate_launch_description():
     pkg_share = get_package_share_directory('le1000_urdf_t4')
-    default_model_path = os.path.join(pkg_share, 'urdf', 'le1000_urdf_t4.urdf.xacro')
+    default_model_path = os.path.join(pkg_share, 'urdf', 'loone_asv.urdf.xacro')
     default_rviz_config_path = os.path.join(pkg_share, 'config', 'le1000_urdf_t4.rviz')
 
     model_arg = DeclareLaunchArgument(
