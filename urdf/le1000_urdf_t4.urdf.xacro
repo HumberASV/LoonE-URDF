@@ -7,32 +7,33 @@
   description, corrects earlier guesses in this file's history):
     * Twin-float catamaran. base_link is the main body/deck, real CAD data
       from SolidWorks (see urdf/le1000_urdf_t4.csv for the exporter's raw
-      dump), sitting between the two floats.
+      dump), sitting between the two floats. The floats themselves are not
+      modeled as separate links - they're baked into the base_link.stl mesh
+      (see meshes/base_link.stl, shipped as a package asset and used
+      directly as base_link's own visual/collision geometry below), so no
+      float_l_link/float_r_link are defined here.
     * EACH float has its own propeller and its own rudder (4 actuated joints
       total, not a single shared unit).
     * The exported "Joint1"/"Joint2" meshed links ARE the two real rudders
       (SW component names "Fishtail rudder-1/2" were accurate after all) -
       one per float. Renamed below to rudder_l_link/rudder_r_link.
-    * float_l_link/float_r_link (pontoon bodies) and propeller_l_link/
-      propeller_r_link have no CAD mesh yet, so they're placeholder
-      primitives, but dimensions/positions below are real team measurements
-      cross-checked against the full boat mesh (base_link.STL, 268 MB -
-      lives outside this repo at the team's CAD export location, too large
-      to check in; NOT shipped as a package asset). That mesh has no
-      separate rudder or camera parts (assembly stand-ins only) but does
-      include the floats and propellers baked into one static shape, which
-      is what the cross-check below is based on:
+    * propeller_l_link/propeller_r_link have no CAD mesh yet, so they're
+      placeholder primitives, but their positions below are real team
+      measurements cross-checked against the full boat mesh
+      (meshes/base_link.stl). That mesh has no separate rudder or camera
+      parts (assembly stand-ins only) but does include the floats and
+      propellers baked into one static shape, which is what the cross-check
+      below is based on:
         - float_x (0.20955 m) = the real rudder mount X; the mesh confirms
-          each float is centered on that same X.
-        - float_width/length/height (0.125 / 0.834 / 0.259 m) and
-          float_end_height (0.122 m, the tapered section that gives the
-          propeller clearance) are team measurements. float_end_length
-          (0.13 m, the tapered section's own length) is estimated from
-          where the mesh's height taper actually starts/ends.
+          each float is centered on that same X. float_height/
+          float_end_height (0.259 / 0.122 m, the tapered section that gives
+          the propeller clearance) are team measurements, kept only to
+          derive prop_z/rudder_mount_z/cam_top_z below - the float bodies
+          they describe aren't drawn as separate links anymore.
         - float_z = 0 (the main float box vertically centered on
           base_link's own origin) is inferred, not measured directly - but
-          it makes the derived camera-mast top (via head_to_float_top
-          below) land within 2 mm of the mesh's true topmost point (Z =
+          it makes the derived camera top (via head_to_float_top below)
+          land within 2 mm of the mesh's true topmost point (Z =
           0.477), so it's a well cross-checked placeholder.
         - propeller Y (0.374 m) and the raw propeller Z reading (-0.173 m,
           kept as prop_z_measured) come directly from the mesh's
@@ -47,27 +48,24 @@
           (rudder_z_shift) applied to its real CAD Z (rudder_mount_z_measured),
           so the measured 0.198 m rudder-to-propeller relationship is
           preserved even though both moved.
-      TODO(team): replace float/propeller placeholders with real per-part
+      TODO(team): replace the propeller placeholder with real per-part
       geometry once the rudder/camera/propeller are modeled as separate
       CAD parts (they're currently only assemblies inside base_link.STL).
-    * cam_mast_link is a thin placeholder box connecting the hull top
-      (hull_top_z) to the cameras (cam_bottom_z) - without it the cameras
-      rendered floating in mid-air above the hull with nothing visibly
-      holding them up.
-    * Two ZED X cameras sit fixed on top of the main body (base_link), not
-      on the rudder meshes. Body box sized from the ZED X spec sheet
-      (164 x 32 x 37 mm, 120 mm stereo baseline); swap in zedx_mini_size
-      below if a mount actually uses the smaller ZED X variant (94 x 32 x 37
-      mm, 50 mm baseline). The stereo baseline is internal to the camera
-      housing and isn't modeled separately.
+    * Two ZED X cameras sit fixed directly on top of the main body
+      (base_link), not on the rudder meshes and not on any mast. Body box
+      sized from the ZED X spec sheet (164 x 32 x 37 mm, 120 mm stereo
+      baseline); swap in zedx_mini_size below if a mount actually uses the
+      smaller ZED X variant (94 x 32 x 37 mm, 50 mm baseline). The stereo
+      baseline is internal to the camera housing and isn't modeled
+      separately.
     * The two cameras face opposite directions (e.g. front/rear coverage),
       cam_span = 0.246 m apart measured face-to-face including the camera
       bodies themselves (per team measurement) - modeled here as a
       front/rear pair along Y, each rotated 180 deg in yaw from the other.
       Vertical placement is derived from a second team measurement: 0.349 m
-      from the top of the camera mast ("top of the head") down to the top
-      of a float - see float_z note above for how well that lines up with
-      the real mesh.
+      from the top of the camera ("top of the head") down to the top of a
+      float - see float_z note above for how well that lines up with the
+      real mesh.
     * Left/right assignment (J1 => left, J2 => right) is an unverified
       guess. Swap the _l/_r suffixes below if backwards.
 
@@ -82,23 +80,15 @@
   <material name="hull_grey"><color rgba="0.3 0.3 0.35 1.0"/></material>
   <material name="dark_trim"><color rgba="0.1 0.1 0.1 1.0"/></material>
 
-  <!-- Float layout: centerline X from the real rudder mount (mesh-confirmed), gap measured by the team. -->
+  <!-- Float layout: centerline X from the real rudder mount (mesh-confirmed). Floats
+       aren't drawn as separate links (baked into base_link.stl) - these dimensions are
+       kept only to derive prop_z/rudder_mount_z/cam_top_z below. -->
   <xacro:property name="float_x" value="0.20955"/>
-  <xacro:property name="float_gap" value="0.263"/>
-  <!-- Team measurements (float body + tapered propeller-clearance section). -->
-  <xacro:property name="float_width" value="0.125"/>
-  <xacro:property name="float_length" value="0.834"/>
-  <xacro:property name="float_height" value="0.259"/>
+  <xacro:property name="float_height" value="0"/>
   <xacro:property name="float_end_height" value="0.122"/>
-  <!-- TODO(team): tapered section's own length is estimated from the mesh, not directly measured. -->
-  <xacro:property name="float_end_length" value="0.13"/>
   <!-- Inferred (not directly measured) - see top-of-file note for the cross-check. -->
   <xacro:property name="float_z" value="0"/>
   <xacro:property name="float_top_z" value="${float_z + float_height / 2}"/>
-  <!-- Main box centered short of the tapered end; both keep the same top (see macro below). -->
-  <xacro:property name="float_main_length" value="${float_length - float_end_length}"/>
-  <xacro:property name="float_main_y" value="${-float_end_length / 2}"/>
-  <xacro:property name="float_end_y" value="${float_length / 2 - float_end_length / 2}"/>
 
   <!-- Propeller hub position: Y is from the base_link.STL mesh (see top-of-file note).
        Z is tucked flush against the float's tapered underside instead of the raw mesh
@@ -116,18 +106,6 @@
   <xacro:property name="rudder_mount_z_measured" value="-0.06586"/>
   <xacro:property name="rudder_mount_z" value="${rudder_mount_z_measured + rudder_z_shift}"/>
 
-  <!-- Central body box, from the mesh (base_link.STL, |x| <= 0.11 slice): the original
-       two stacked boxes (0.60 m wide, z spanning -0.35 to +0.35, y spanning ~0.9-0.95)
-       were sized to the WHOLE boat's outer envelope (floats included), not just the
-       central body between them. That's now redundant with float_l/r_link above and,
-       worse, left a box hanging in mid-air below the real hull (the actual center only
-       dips to z ~ -0.07). Replaced with a single box sized to the central body alone;
-       still a placeholder shape, but the real cross-checked extent, not a guess. -->
-  <xacro:property name="hull_width" value="0.22"/>
-  <xacro:property name="hull_length" value="0.60"/>
-  <xacro:property name="hull_height" value="0.37"/>
-  <xacro:property name="hull_z" value="0.115"/>
-
   <!-- ZED X body box, from the spec sheet (length x depth x height). -->
   <xacro:property name="zedx_length" value="0.164"/>
   <xacro:property name="zedx_depth" value="0.032"/>
@@ -141,19 +119,9 @@
   <xacro:property name="cam_span" value="0.246"/>
   <xacro:property name="cam_y" value="${(cam_span - zedx_depth) / 2}"/>
   <!-- Vertical placement chains off float_top_z above (team measurement). -->
-  <xacro:property name="head_to_float_top" value="0.349"/>
+  <xacro:property name="head_to_float_top" value="0.350"/>
   <xacro:property name="cam_top_z" value="${float_top_z + head_to_float_top}"/>
   <xacro:property name="cam_z" value="${cam_top_z - zedx_height / 2}"/>
-
-  <!-- Mast connecting the hull top to the cameras (otherwise they render floating in
-       mid-air, since cam_z sits well above hull_top_z). Placeholder box, thin in X,
-       wide enough in Y to sit under both front/rear-facing camera footprints. -->
-  <xacro:property name="hull_top_z" value="${hull_z + hull_height / 2}"/>
-  <xacro:property name="cam_bottom_z" value="${cam_z - zedx_height / 2}"/>
-  <xacro:property name="mast_width" value="${hull_width}"/>
-  <xacro:property name="mast_length" value="${2 * cam_y + zedx_depth}"/>
-  <xacro:property name="mast_height" value="${cam_bottom_z - hull_top_z}"/>
-  <xacro:property name="mast_z" value="${(hull_top_z + cam_bottom_z) / 2}"/>
 
   <xacro:macro name="zedx_body">
     <visual>
@@ -162,25 +130,6 @@
         <box size="${zedx_size}" />
       </geometry>
       <material name="dark_trim"/>
-    </visual>
-  </xacro:macro>
-
-  <!-- Float body: main box plus a shorter/thinner box at the propeller end,
-       both top-aligned so the underside steps up for propeller clearance. -->
-  <xacro:macro name="float_body">
-    <visual>
-      <origin xyz="0 ${float_main_y} 0" rpy="0 0 0"/>
-      <geometry>
-        <box size="${float_width} ${float_main_length} ${float_height}"/>
-      </geometry>
-      <material name="hull_grey"/>
-    </visual>
-    <visual>
-      <origin xyz="0 ${float_end_y} ${(float_height - float_end_height) / 2}" rpy="0 0 0"/>
-      <geometry>
-        <box size="${float_width} ${float_end_length} ${float_end_height}"/>
-      </geometry>
-      <material name="hull_grey"/>
     </visual>
   </xacro:macro>
 
@@ -202,41 +151,25 @@
     </inertial>
     <visual>
       <origin
-        xyz="0 0 ${hull_z}"
+        xyz="0 0 0"
         rpy="0 0 0" />
       <geometry>
-        <box
-          size="${hull_width} ${hull_length} ${hull_height}" />
+        <mesh
+          filename="package://le1000_urdf_t4/meshes/base_link.stl"/>
       </geometry>
       <material
         name="hull_grey"/>
     </visual>
     <collision>
       <origin
-        xyz="0 0 ${hull_z}"
+        xyz="0 0 0"
         rpy="0 0 0" />
       <geometry>
-        <box
-          size="${hull_width} ${hull_length} ${hull_height}" />
+        <mesh
+          filename="package://le1000_urdf_t4/meshes/base_link.stl" />
       </geometry>
     </collision>
   </link>
-
-  <!-- ============================ Floats (placeholder shape, real measured dimensions) ============================ -->
-  <link name="float_l_link"><xacro:float_body/></link>
-  <link name="float_r_link"><xacro:float_body/></link>
-
-  <joint name="float_l_joint" type="fixed">
-    <parent link="base_link"/>
-    <child link="float_l_link"/>
-    <origin xyz="${float_x} 0 ${float_z}" rpy="0 0 0"/>
-  </joint>
-
-  <joint name="float_r_joint" type="fixed">
-    <parent link="base_link"/>
-    <child link="float_r_link"/>
-    <origin xyz="${-float_x} 0 ${float_z}" rpy="0 0 0"/>
-  </joint>
 
   <!-- ============================ Rudders (real CAD, one per float) ============================ -->
   <link
@@ -329,7 +262,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://le1000_urdf_t4/meshes/Joint2.STL" />
+          filename="package://le1000_urdf_t4/meshes/Joint2.STL"/>
       </geometry>
     </collision>
   </link>
@@ -361,26 +294,18 @@
   <joint name="propeller_l_joint" type="continuous">
     <parent link="base_link"/>
     <child link="propeller_l_link"/>
-    <origin xyz="${float_x} ${prop_y} ${prop_z}" rpy="0 1.5708 0"/>
+    <origin xyz="${float_x} ${prop_y} ${prop_z}" rpy="0 1.5708 1.5708"/>
     <axis xyz="0 0 1"/>
   </joint>
 
   <joint name="propeller_r_joint" type="continuous">
     <parent link="base_link"/>
     <child link="propeller_r_link"/>
-    <origin xyz="${-float_x} ${prop_y} ${prop_z}" rpy="0 1.5708 0"/>
+    <origin xyz="${-float_x} ${prop_y} ${prop_z}" rpy="0 1.5708 1.5708"/>
     <axis xyz="0 0 1"/>
   </joint>
 
-  <!-- ============================ Camera mast + cameras (placeholder, on top of main body) ============================ -->
-  <link name="cam_mast_link"><visual><geometry><box size="${mast_width} ${mast_length} ${mast_height}"/></geometry><material name="hull_grey"/></visual></link>
-
-  <joint name="cam_mast_joint" type="fixed">
-    <parent link="base_link"/>
-    <child link="cam_mast_link"/>
-    <origin xyz="0 0 ${mast_z}" rpy="0 0 0"/>
-  </joint>
-
+  <!-- ============================ Cameras (fixed on top of main body) ============================ -->
   <link name="cam_1_link">
     <xacro:zedx_body/>
   </link>
