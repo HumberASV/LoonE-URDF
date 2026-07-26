@@ -63,6 +63,12 @@
   <link name="prop_r_link"><visual><geometry><cylinder radius="0.05" length="0.08"/></geometry><material name="prop_dark"/></visual></link>
   <link name="rudder_link"><visual><geometry><box size="0.02 0.05 0.15"/></geometry><material name="prop_dark"/></visual></link>
 
+  <!-- GPS antenna mount, frame-only (no geometry). TODO(team): measure the real
+       offset if the antenna ever isn't at the boat's origin. phone.py stamps its
+       NavSatFix messages with this frame, and navsat_transform_node uses the offset
+       between it and base_link to place the GPS fix correctly. -->
+  <link name="gps_link"/>
+
   <!-- ============================ Joints ============================ -->
   <!-- The propellers spin about their thrust axis. We model them as `continuous`
        so ros2_control can expose a command interface; the numeric command is a
@@ -89,6 +95,12 @@
     <origin xyz="${rudder_x} 0 0" rpy="0 0 1.5708"/>
     <axis xyz="0 0 1"/>
     <limit lower="-0.6" upper="0.6" effort="5.0" velocity="3.0"/>
+  </joint>
+
+  <joint name="gps_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="gps_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
   </joint>
 
   <!-- ============================ ros2_control ============================ -->
