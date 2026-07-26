@@ -152,10 +152,12 @@
     <visual>
       <origin
         xyz="0 0 0"
-        rpy="0 0 0" />
+        rpy="0 0 1.5708"/>
       <geometry>
         <mesh
-          filename="package://le1000_urdf_t4/meshes/base_link.stl"/>
+          filename="package://le1000_urdf_t4/meshes/base_link.stl"
+          
+          />
       </geometry>
       <material
         name="hull_grey"/>
