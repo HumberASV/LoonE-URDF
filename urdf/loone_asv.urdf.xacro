@@ -34,15 +34,17 @@
   <xacro:property name="hull_length" value="1.0"/>   <!-- m -->
   <xacro:property name="hull_width"  value="0.6"/>   <!-- m -->
   <xacro:property name="hull_height" value="0.2"/>   <!-- m -->
-  <xacro:property name="prop_x"      value="-0.45"/> <!-- props near the stern -->
-  <xacro:property name="prop_y"      value="0.25"/>  <!-- half the thruster separation -->
-  <xacro:property name="rudder_x"    value="-0.55"/> <!-- rudder behind the props -->
+  <xacro:property name="prop_x"      value="-0.40"/> <!-- props near the stern -->
+  <xacro:property name="prop_y"      value="0.209"/>  <!-- half the thruster separation -->
+  <xacro:property name="prop_z"      value="-0.169"/>   <!-- props at waterline -->
+  <xacro:property name="rudder_x"    value="-0.47"/> <!-- rudder behind the props -->
+  <xacro:property name="rudder_z"    value="-0.065"/>   <!-- rudder height -->
 
+  <!-- ============================ Materials ============================ -->
   <material name="hull_grey"><color rgba="0.3 0.3 0.35 1.0"/></material>
   <material name="prop_dark"><color rgba="0.1 0.1 0.1 1.0"/></material>
 
   <!-- ============================ Links ============================ -->
-  <!-- base_link: the robot base frame nav2 plans for. Origin ~ boat center. -->
   <link name="base_link">
     <visual>
     <origin
@@ -64,16 +66,63 @@
     </inertial>
   </link>
 
-  <!-- Simple placeholder links for the two thrusters and the rudder. -->
-  <link name="prop_l_link"><visual><geometry><cylinder radius="0.05" length="0.08"/></geometry><material name="prop_dark"/></visual></link>
-  <link name="prop_r_link"><visual><geometry><cylinder radius="0.05" length="0.08"/></geometry><material name="prop_dark"/></visual></link>
-  <link name="rudder_link"><visual><geometry><box size="0.02 0.05 0.15"/></geometry><material name="prop_dark"/></visual></link>
+  <link name="prop_l_link">
+    <visual>
+    <origin xyz="0 0 0" rpy="1.5708 0 1.5708"/>
+    <geometry>
+      <cylinder radius="0.05" length="0.08"/>
+    </geometry>
+    <material name="prop_dark"/>
+    </visual>
+  </link>
+
+  <link name="prop_r_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.5708 0 1.5708"/>
+      <geometry>
+        <cylinder radius="0.05" length="0.08"/>
+      </geometry>
+      <material name="prop_dark"/>
+    </visual>
+  </link>
+
+   <link name="rudder_r_link">
+    <visual>
+     <origin
+        xyz="0 0 0"
+        rpy="1.5708 0 1.5708"/>
+      <geometry>
+        <mesh
+            filename="package://le1000_urdf_t4/meshes/Joint1.STL" />
+      </geometry>
+      <material name="prop_dark"/>
+    </visual>
+  </link>
+
+  <link name="rudder_l_link">
+    <visual>
+     <origin
+        xyz="0 0 0"
+        rpy="1.5708 0 1.5708"/>
+      <geometry>
+        <mesh
+            filename="package://le1000_urdf_t4/meshes/Joint1.STL" />
+      </geometry>
+      <material name="prop_dark"/>
+    </visual>
+  </link>
 
   <!-- GPS antenna mount, frame-only (no geometry). TODO(team): measure the real
        offset if the antenna ever isn't at the boat's origin. phone.py stamps its
        NavSatFix messages with this frame, and navsat_transform_node uses the offset
        between it and base_link to place the GPS fix correctly. -->
-  <link name="gps_link"/>
+  <link name="gps_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.01 0.01 0.01"/></geometry>
+      <material name="prop_dark"/>
+    </visual>
+  </link>
 
   <!-- ============================ Joints ============================ -->
   <!-- The propellers spin about their thrust axis. We model them as `continuous`
@@ -82,23 +131,31 @@
   <joint name="prop_l_joint" type="continuous">
     <parent link="base_link"/>
     <child link="prop_l_link"/>
-    <origin xyz="${prop_x} ${prop_y} 0" rpy="1.5708 0 0"/>
+    <origin xyz="${prop_x} ${prop_y} ${prop_z}" rpy="0 0 3.14159"/>
     <axis xyz="1 0 0"/>
   </joint>
 
   <joint name="prop_r_joint" type="continuous">
     <parent link="base_link"/>
     <child link="prop_r_link"/>
-    <origin xyz="${prop_x} ${-prop_y} 0" rpy="1.5708 0 0"/>
+    <origin xyz="${prop_x} ${-prop_y} ${prop_z}" rpy="0 0 3.14159"/>
     <axis xyz="1 0 0"/>
   </joint>
 
   <!-- Rudder deflects left/right about the vertical axis. `revolute` with generous
        limits; the numeric command is a normalized [0,1] fraction (0.55 ~ straight). -->
-  <joint name="rudder_joint" type="revolute">
+  <joint name="rudder_r_joint" type="revolute">
     <parent link="base_link"/>
-    <child link="rudder_link"/>
-    <origin xyz="${rudder_x} 0 0" rpy="0 0 1.5708"/>
+    <child link="rudder_r_link"/>
+    <origin xyz="${rudder_x} ${-prop_y} ${rudder_z}" rpy="0 0 1.5708"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-0.6" upper="0.6" effort="5.0" velocity="3.0"/>
+  </joint>
+
+  <joint name="rudder_l_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="rudder_l_link"/>
+    <origin xyz="${rudder_x} ${prop_y} ${rudder_z}" rpy="0 0 1.5708"/>
     <axis xyz="0 0 1"/>
     <limit lower="-0.6" upper="0.6" effort="5.0" velocity="3.0"/>
   </joint>
@@ -106,7 +163,7 @@
   <joint name="gps_joint" type="fixed">
     <parent link="base_link"/>
     <child link="gps_link"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="0 0 0.33" rpy="0 0 0"/>
   </joint>
 
   <!-- ============================ ros2_control ============================ -->
@@ -143,7 +200,11 @@
       <command_interface name="position"/>
       <state_interface name="position"/>
     </joint>
-    <joint name="rudder_joint">
+    <joint name="rudder_r_joint">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="rudder_l_joint">
       <command_interface name="position"/>
       <state_interface name="position"/>
     </joint>
