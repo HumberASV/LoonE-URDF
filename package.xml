@@ -14,6 +14,10 @@ for LE1000-URDF-T4 robot</p>
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <exec_depend>xacro</exec_depend>
+  <!-- loone_asv.urdf.xacro includes $(find zed_wrapper)/urdf/zed_macro.urdf.xacro and
+       instantiates the camera as the robot's root link, so the description cannot be
+       expanded without the ZED wrapper package on the path. -->
+  <exec_depend>zed_wrapper</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>joint_state_publisher_gui</exec_depend>
   <exec_depend>rviz2</exec_depend>

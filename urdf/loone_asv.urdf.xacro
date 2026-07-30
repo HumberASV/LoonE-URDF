@@ -7,26 +7,46 @@
     * Declare the three actuated joints (2 propellers + 1 rudder) and expose them
       to ros2_control through the stock topic_based_ros2_control hardware.
 
-  What this is NOT:
-    * It does not include the ZED camera description. The ZED wrapper already runs
-      its own robot_state_publisher and publishes `odom -> zedx_camera_link`. We
-      connect the camera frame to `base_link` with a single static_transform_publisher
-      in bringup.launch.py instead, so no frame is broadcast by two publishers.
+  THE CAMERA IS THE ROOT OF THIS TREE, AND cam_1 IS THE ZED X
+    This file INCLUDES the ZED wrapper's own zed_macro.urdf.xacro and instantiates
+    it as the root link, so `<camera_name>_camera_link` and its child frames come
+    from Stereolabs' description rather than being approximated here. cam_1 is not
+    a separate placeholder link any more; it IS the ZED X, and its mount offset
+    lives in exactly one place: cam_1_to_base_link below.
+
+    Because of that, bringup.launch.py passes `publish_urdf:=false` to the wrapper.
+    Left at its default the wrapper starts a SECOND robot_state_publisher
+    (/<ns>/<camera_name>_state_publisher) describing the same camera, which is
+    what previously put two competing robot descriptions on the graph.
+
+  WHY THE TREE IS INVERTED
+    This wrapper version has no `base_frame` parameter (grep the submodule, there
+    is none), so it can only publish `odom -> <camera_name>_camera_link`. It cannot
+    be told to track base_link. A URDF has exactly one root, and TF allows exactly
+    one parent per frame, so base_link necessarily hangs BELOW the camera. That is
+    unconventional (usually odom -> base_link -> sensors) but TF-valid.
+
+    The payoff is that no static_transform_publisher is needed at all: the joint
+    below encodes the camera->base_link offset, so the mount geometry cannot drift
+    out of sync with a separate hand-maintained transform the way it used to.
 
   TF layout produced with the launch file:
       map (SLAM Toolbox)
-        -> odom (ZED)
-          -> zedx_camera_link (ZED)
-            -> base_link            (static_transform_publisher, in bringup.launch.py)
-              -> prop_l / prop_r / rudder links   (this file, via robot_state_publisher)
-
-  NOTE on the tree shape: ZED publishes odom -> zedx_camera_link directly and this
-  wrapper version has no "base_frame" parameter, so base_link necessarily hangs
-  BELOW the camera. That is unconventional (usually odom -> base_link -> sensors)
-  but TF-valid. If you later want the classic layout, make the ZED track base_link
-  and flip the static transform. See bringup.launch.py TODO.
+        -> odom (ZED wrapper, pos_tracking)
+          -> <camera_name>_camera_link       (ZED macro, THIS file, = cam_1)
+            -> <camera_name>_camera_center -> left/right frames + optical frames
+            -> base_link                    (cam_1_to_base_link, THIS file)
+              -> prop_l / prop_r / rudder_r / rudder_l / gps_link / cam_2_link
 -->
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="loone_asv">
+
+  <!-- Must match the camera_name/camera_model passed to the ZED wrapper, or the
+       frames this file declares will not be the ones the wrapper publishes into.
+       bringup.launch.py forwards its own launch arguments here. -->
+  <xacro:arg name="camera_name"  default="zedx"/>
+  <xacro:arg name="camera_model" default="zedx"/>
+
+  <xacro:include filename="$(find zed_wrapper)/urdf/zed_macro.urdf.xacro"/>
 
   <!-- ============================ Tunable geometry ============================ -->
   
@@ -72,6 +92,30 @@
       <material name="prop_dark"/>
     </visual>
   </xacro:macro>
+
+  <!-- ================= ROOT: the ZED X (a.k.a. cam_1) ================= -->
+  <!-- Stereolabs' own macro, so the camera body, baseline and optical frames match
+       what zed_wrapper publishes into. It declares `<name>_camera_link` with no
+       parent, which makes it this robot's root; see the header for why.
+
+       The <origin> is the macro's required `*gnss_origin` block parameter: xacro
+       demands the block even when enable_gnss is false, in which case it is unused.
+       We keep GNSS off here and use our own gps_link below, because that is the
+       frame phone.py and sim_gnss.py stamp their NavSatFix with. -->
+  <xacro:zed_camera name="$(arg camera_name)" model="$(arg camera_model)">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:zed_camera>
+
+  <!-- Camera -> base_link: the INVERSE of where cam_1 sits on the boat.
+       cam_1's mount is (cam_x, cam_y, cam_z) from base_link with no rotation, so
+       the inverse is simply the negated translation. If you ever give this joint a
+       non-zero rpy, the inverse is NO LONGER just negated xyz: you would have to
+       invert the rotation and rotate the translation by it. -->
+  <joint name="cam_1_to_base_link" type="fixed">
+    <parent link="$(arg camera_name)_camera_link"/>
+    <child link="base_link"/>
+    <origin xyz="${-cam_x} ${-cam_y} ${-cam_z}" rpy="0 0 0"/>
+  </joint>
 
   <!-- ============================ Links ============================ -->
   <link name="base_link">
@@ -153,9 +197,13 @@
     </visual>
   </link>
 
-  <link name="cam_1_link">
-    <xacro:zedx_body/>
-  </link>
+  <!-- No cam_1_link: cam_1 IS <camera_name>_camera_link from the ZED macro above.
+       A separate placeholder would be a second frame for one physical camera, which
+       is exactly the duplication this file used to have.
+
+       cam_2 is still a placeholder box: it is the planned second camera and nothing
+       publishes into it yet. When a real second ZED is added, instantiate the macro
+       again with a different `name` and delete this link. -->
   <link name="cam_2_link">
     <xacro:zedx_body/>
   </link>
@@ -203,12 +251,9 @@
   </joint>
 
 
-  <joint name="cam_1_joint" type="fixed">
-    <parent link="base_link"/>
-    <child link="cam_1_link"/>
-    <!-- Stern side (same side as props/rudder): boresight faces +Y (aft). -->
-    <origin xyz="${cam_x} ${cam_y} ${cam_z}" rpy="0 0 0"/>
-  </joint>
+  <!-- cam_1's mount is expressed once, inverted, as cam_1_to_base_link near the top
+       of this file (the camera is the root). There is deliberately no cam_1_joint
+       here: two joints for one mount is how the offset drifts. -->
 
   <joint name="cam_2_joint" type="fixed">
     <parent link="base_link"/>
